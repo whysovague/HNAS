@@ -1,10 +1,14 @@
 {
   "name": "hnas",
   "version": "1.0.0",
-  "description": "",
+  "description": "Home Network Assistance System",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron": "cross-env NODE_ENV=development electron .",
+    "dist": "vite build && electron-builder"
   },
   "repository": {
     "type": "git",
@@ -19,6 +23,18 @@
   },
   "homepage": "https://github.com/whysovague/HNAS#readme",
   "devDependencies": {
-    "electron": "^41.5.0"
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^41.5.0",
+    "electron-builder": "^25.1.8",
+    "vite": "^6.3.5",
+    "wait-on": "^8.0.3"
+  },
+  "dependencies": {
+    "lucide-react": "^1.14.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.15.0"
   }
 }

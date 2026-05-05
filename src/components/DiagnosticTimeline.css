@@ -1,0 +1,77 @@
+.diag-timeline {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.diag-step {
+  display: flex;
+  gap: 14px;
+}
+
+.diag-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.diag-line {
+  width: 1px;
+  flex: 1;
+  min-height: 20px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+.diag-icon--success { color: var(--green); }
+.diag-icon--fail    { color: var(--red); }
+.diag-icon--warning { color: var(--amber); }
+.diag-icon--running { color: var(--text-secondary); }
+
+.diag-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: transparent;
+}
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.diag-content {
+  flex: 1;
+  padding-bottom: 20px;
+}
+
+.diag-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 3px;
+}
+
+.diag-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.diag-detail {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.diag-step--success .diag-detail { color: var(--green); }
+.diag-step--fail    .diag-detail { color: var(--red); }
+.diag-step--warning .diag-detail { color: var(--amber); }
+
+.diag-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}

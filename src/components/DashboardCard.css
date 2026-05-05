@@ -1,0 +1,75 @@
+.dash-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  text-align: left;
+  transition: background var(--transition), border-color var(--transition);
+  cursor: pointer;
+  width: 100%;
+}
+
+.dash-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+.dash-card:hover .dash-card-arrow {
+  transform: translateX(3px);
+  opacity: 1;
+}
+
+.dash-card-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e1e;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.dash-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.dash-card-badge {
+  font-size: 10px;
+  padding: 1px 7px;
+  background: var(--red-bg);
+  color: var(--red);
+  border-radius: 3px;
+  border: 1px solid #2e1515;
+}
+
+.dash-card-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-card-arrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  opacity: 0.4;
+  transition: all var(--transition);
+}

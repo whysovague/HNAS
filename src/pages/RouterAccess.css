@@ -1,0 +1,131 @@
+.ra-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  max-width: 540px;
+}
+
+.ra-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e1e;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.ra-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ra-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ra-detail-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.ra-ip {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+}
+
+.ra-help {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.ra-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ra-result--success {
+  background: var(--green-bg);
+  border: 1px solid #1e3a28;
+  color: var(--green);
+}
+
+.ra-result--fail {
+  background: var(--red-bg);
+  border: 1px solid #2e1515;
+  color: var(--red);
+}
+
+.ra-reset {
+  margin-left: auto;
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  opacity: 0.6;
+  font-family: var(--font);
+}
+.ra-reset:hover { opacity: 1; }
+
+/* Fallback panel */
+.ra-fallback {
+  padding: 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  max-width: 540px;
+}
+
+.ra-fallback-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 14px;
+}
+
+.ra-steps {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ra-steps li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.ra-steps code {
+  background: #1e1e1e;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: var(--font);
+}

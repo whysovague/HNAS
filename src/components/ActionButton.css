@@ -1,0 +1,83 @@
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn--full {
+  width: 100%;
+}
+
+/* Primary — white on dark */
+.action-btn--primary {
+  background: #f0f0f0;
+  color: #0d0d0d;
+  border-color: #f0f0f0;
+}
+.action-btn--primary:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+/* Secondary — outlined */
+.action-btn--secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+.action-btn--secondary:hover:not(:disabled) {
+  background: #1e1e1e;
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+/* Danger */
+.action-btn--danger {
+  background: var(--red-bg);
+  color: var(--red);
+  border-color: #2e1515;
+}
+.action-btn--danger:hover:not(:disabled) {
+  background: #2a1212;
+  border-color: #3d1a1a;
+}
+
+/* Ghost */
+.action-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+.action-btn--ghost:hover:not(:disabled) {
+  background: #1e1e1e;
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Spinner */
+.btn-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
