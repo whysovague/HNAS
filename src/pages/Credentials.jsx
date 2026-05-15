@@ -2,26 +2,40 @@ import React, { useState } from 'react'
 import { KeyRound, Wifi, Router, Tag, ChevronDown, ChevronUp } from 'lucide-react'
 import ActionButton from '../components/ActionButton'
 import PasswordReveal from '../components/PasswordReveal'
-import { networkStatus, defaultCredentialDB } from '../data/mockData'
+import { defaultCredentialDB } from '../data/mockData'
 import './Credentials.css'
 
-export default function Credentials() {
-  const [wifiState, setWifiState] = useState('idle') // idle | loading | revealed
+export default function Credentials({ networkData }) {
+  const [wifiState, setWifiState] = useState('idle') // idle | loading | revealed | error
+  const [actualWifiPassword, setActualWifiPassword] = useState('')
+  
   const [defaultState, setDefaultState] = useState('idle') // idle | loading | matched | no-match
   const [match, setMatch] = useState(null)
   const [labelExpanded, setLabelExpanded] = useState(false)
 
-  const { ssid, gatewayIP } = networkStatus
+  // Grab live data instead of mock
+  const ssid = networkData?.ssid || 'Unknown'
+  const gatewayIP = networkData?.gatewayIP || 'Unknown'
 
-  // Mock: Wi-Fi password retrieve from OS
-  // TODO: Replace with Electron IPC → exec('netsh wlan show profile ... key=clear') on Windows
-  function handleGetWifi() {
+  async function handleGetWifi() {
     setWifiState('loading')
-    setTimeout(() => setWifiState('revealed'), 1500)
+    
+    try {
+      const password = await window.hnasAPI.getWifiPassword(ssid)
+      
+      if (password) {
+        setActualWifiPassword(password)
+        setWifiState('revealed')
+      } else {
+        setWifiState('error')
+      }
+    } catch (error) {
+      console.error(error)
+      setWifiState('error')
+    }
   }
 
-  // Mock: look up MAC OUI in local DB
-  // TODO: Replace with real ARP table lookup + MAC OUI lookup
+  // Still mocked for now
   function handleGetDefaults() {
     setDefaultState('loading')
     setTimeout(() => {
@@ -62,7 +76,7 @@ export default function Credentials() {
                 This will read your saved Wi-Fi password from the operating system.
                 No data is sent anywhere.
               </p>
-              <ActionButton icon={KeyRound} onClick={handleGetWifi} fullWidth>
+              <ActionButton icon={KeyRound} onClick={handleGetWifi} fullWidth disabled={ssid === 'Unknown' || ssid === 'Wired / Unknown'}>
                 Retrieve Password
               </ActionButton>
             </>
@@ -74,9 +88,16 @@ export default function Credentials() {
 
           {wifiState === 'revealed' && (
             <PasswordReveal
-              password="MySecureWifi2024!"
+              password={actualWifiPassword}
               label={`Password for "${ssid}"`}
             />
+          )}
+
+          {wifiState === 'error' && (
+            <div className="cred-info" style={{ color: 'var(--red)', border: '1px solid var(--red-bg)' }}>
+              Could not retrieve the password. You may not be on Wi-Fi, or you lack administrator permissions.
+              <button onClick={() => setWifiState('idle')} style={{ display: 'block', marginTop: '10px', background: 'none', border: 'none', color: 'var(--text-primary)', textDecoration: 'underline' }}>Try again</button>
+            </div>
           )}
         </div>
 

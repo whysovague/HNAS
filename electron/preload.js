@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('hnasAPI', {
   // Network
   getNetworkStatus: () => ipcRenderer.invoke('network:getStatus'),
   scanDevices: () => ipcRenderer.invoke('network:scanDevices'),
+  getWifiPassword: (ssid) => ipcRenderer.invoke('network:getWifiPassword', ssid), // NEW
   
   // System actions
   openRouter: (ip) => ipcRenderer.send('system:openRouter', ip),

@@ -23,6 +23,25 @@ function registerHandlers() {
       }
     }
 
+// Get Wi-Fi Password via netsh
+  ipcMain.handle('network:getWifiPassword', async (event, ssid) => {
+    if (!ssid || ssid === 'Wired / Unknown' || ssid === 'Detecting...') return null
+
+    return new Promise((resolve) => {
+      // Windows command to reveal the saved Wi-Fi key
+      exec(`netsh wlan show profile name="${ssid}" key=clear`, (error, stdout) => {
+        if (error) {
+          console.error('Failed to get Wi-Fi password:', error)
+          return resolve(null)
+        }
+
+        // Parse the "Key Content" line from the Windows output
+        const match = stdout.match(/^\s*Key Content\s*:\s*(.+)$/m)
+        resolve(match && match[1] ? match[1].trim() : null)
+      })
+    })
+  })
+
     const gatewayIP = await new Promise((resolve) => {
       exec('route print 0.0.0.0', (error, stdout) => {
         if (error) return resolve('192.168.1.1') 
