@@ -5,3 +5,10 @@
 .env
 .env.*
 
+# Vim backup and swap files
+*~
+*.swp
+*.swo
+
+# Vim undo history
+*.un~
