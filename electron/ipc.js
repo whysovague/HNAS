@@ -2,7 +2,6 @@ const { ipcMain, shell } = require('electron')
 const { exec } = require('child_process')
 const os = require('os')
 
-// Mock database for credentials
 const defaultCredentialDB = {
   'A4:83:E7': { vendor: 'TP-Link', username: 'admin', password: 'admin' },
   'F8:0D:43': { vendor: 'ASUS', username: 'admin', password: 'admin' },
@@ -11,10 +10,8 @@ const defaultCredentialDB = {
 }
 
 function registerHandlers() {
-  // 1. Network Status (Gateway + Local IP + Real SSID)
   ipcMain.handle('network:getStatus', async () => {
     
-    // Get Local IP
     let localIP = 'Unknown'
     const interfaces = os.networkInterfaces()
     for (const name of Object.keys(interfaces)) {
@@ -26,7 +23,6 @@ function registerHandlers() {
       }
     }
 
-    // Get Gateway IP via route print
     const gatewayIP = await new Promise((resolve) => {
       exec('route print 0.0.0.0', (error, stdout) => {
         if (error) return resolve('192.168.1.1') 
@@ -45,35 +41,37 @@ function registerHandlers() {
       })
     })
 
-    // Get Real Wi-Fi SSID via netsh
-    const ssid = await new Promise((resolve) => {
+    // Get Real Wi-Fi SSID AND Encryption (Authentication) via netsh
+    const wlanInfo = await new Promise((resolve) => {
       exec('netsh wlan show interfaces', (error, stdout) => {
-        if (error) return resolve('Wired / Unknown')
+        if (error) return resolve({ ssid: 'Wired / Unknown', auth: 'Unknown' })
         
-        // Matches the "SSID : MyNetworkName" line in Windows output
-        const match = stdout.match(/^\s*SSID\s*:\s*(.+)$/m)
-        resolve(match && match[1] ? match[1].trim() : 'Wired / Unknown')
+        const ssidMatch = stdout.match(/^\s*SSID\s*:\s*(.+)$/m)
+        const authMatch = stdout.match(/^\s*Authentication\s*:\s*(.+)$/m)
+        
+        resolve({
+          ssid: ssidMatch && ssidMatch[1] ? ssidMatch[1].trim() : 'Wired / Unknown',
+          auth: authMatch && authMatch[1] ? authMatch[1].trim() : 'Unknown'
+        })
       })
     })
 
     return {
-      ssid, // Now returns your actual Wi-Fi name
+      ssid: wlanInfo.ssid,
       status: 'connected',
       gatewayIP,
       localIP,
-      signalStrength: 100, // These two are still mocked for now
-      encryptionType: 'WPA2/WPA3'
+      signalStrength: 100, 
+      encryptionType: wlanInfo.auth // Now returns real data like 'WPA2-Personal'
     }
   })
 
-  // 2. Open Router Access Page in Default Browser
   ipcMain.on('system:openRouter', (event, ip) => {
     if (ip) {
       shell.openExternal(`http://${ip}`)
     }
   })
 
-  // 3. Windows ARP Scanner
   ipcMain.handle('network:scanDevices', async () => {
     return new Promise((resolve) => {
       exec('arp -a', (error, stdout) => {
@@ -108,7 +106,6 @@ function registerHandlers() {
     })
   })
 
-  // 4. Retrieve Credentials by MAC OUI
   ipcMain.handle('db:getDefaultCredentials', (event, mac) => {
     if (!mac) return null
     const oui = mac.substring(0, 8).toUpperCase()

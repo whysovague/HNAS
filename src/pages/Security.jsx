@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Bell, Mail, MessageSquare, ShieldCheck } from 'lucide-react'
 import SecurityChecklist from '../components/SecurityChecklist'
 import ActionButton from '../components/ActionButton'
-import { securityChecklist, networkStatus } from '../data/mockData'
+import { securityChecklist } from '../data/mockData'
 import './Security.css'
 
 const intervals = [
@@ -11,14 +11,26 @@ const intervals = [
   { value: 'annual', label: 'Yearly' },
 ]
 
-export default function Security() {
+export default function Security({ networkData }) {
   const [interval, setInterval] = useState('semi-annual')
   const [notifType, setNotifType] = useState('email')
   const [contact, setContact] = useState('')
   const [saved, setSaved] = useState(false)
 
+  const encType = networkData?.encryptionType || 'Unknown'
+  
+  // Automate the encryption check based on real backend data
+  const isEncryptionSafe = encType.includes('WPA2') || encType.includes('WPA3')
+  
+  // Override the static mock checklist with our live computed data
+  const dynamicChecklist = securityChecklist.map(item => {
+    if (item.id === 'encryption') {
+      return { ...item, checked: isEncryptionSafe }
+    }
+    return item
+  })
+
   function handleSave() {
-    // TODO: persist via Electron store / IPC
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -108,10 +120,14 @@ export default function Security() {
           <p className="sec-checklist-intro">
             Track important security tasks for your home network. Click each item to mark it done.
           </p>
-          <SecurityChecklist items={securityChecklist} />
-          <div className="sec-enc">
+          <SecurityChecklist items={dynamicChecklist} />
+          
+          {/* Dynamic Encryption Display */}
+          <div className={`sec-enc ${!isEncryptionSafe ? 'sec-enc--warning' : ''}`}>
             <span className="sec-enc-label">Detected encryption</span>
-            <span className="sec-enc-value">{networkStatus.encryptionType}</span>
+            <span className="sec-enc-value" style={{ color: isEncryptionSafe ? 'var(--green)' : 'var(--red)' }}>
+              {encType}
+            </span>
           </div>
         </div>
       </div>

@@ -65,7 +65,7 @@ export default function App() {
             <Route path="/" element={<Dashboard networkData={networkData} />} />
             <Route path="/router" element={<RouterAccess networkData={networkData} />} />
             <Route path="/credentials" element={<Credentials />} />
-            <Route path="/security" element={<Security />} />
+            <Route path="/security" element={<Security networkData={networkData} />} />
             <Route path="/devices" element={<Devices />} />
           </Routes>
         </div>
