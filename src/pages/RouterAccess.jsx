@@ -1,19 +1,45 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Router, ExternalLink, AlertCircle, CheckCircle2 } from 'lucide-react'
 import ActionButton from '../components/ActionButton'
-import { networkStatus } from '../data/mockData'
 import './RouterAccess.css'
 
 export default function RouterAccess() {
   const [launchState, setLaunchState] = useState('idle') // idle | loading | success | fail
-  const { gatewayIP } = networkStatus
+  const [gatewayIP, setGatewayIP] = useState('Detecting...')
+
+  // Fetch the real gateway IP from the Electron backend on load
+  useEffect(() => {
+    async function fetchGateway() {
+      try {
+        const status = await window.hnasAPI.getNetworkStatus()
+        setGatewayIP(status.gatewayIP || 'Unknown')
+      } catch (error) {
+        console.error('Failed to fetch gateway IP:', error)
+        setGatewayIP('Error detecting IP')
+      }
+    }
+    fetchGateway()
+  }, [])
 
   function handleOpen() {
     setLaunchState('loading')
-    // TODO: use Electron shell.openExternal(`http://${gatewayIP}`) via IPC
-    setTimeout(() => {
-      setLaunchState('success') // swap to 'fail' to test fallback
-    }, 1500)
+    
+    try {
+      // Call the IPC bridge to open the browser
+      if (gatewayIP && gatewayIP !== 'Detecting...' && gatewayIP !== 'Error detecting IP') {
+        window.hnasAPI.openRouter(gatewayIP)
+        
+        // Brief artificial delay for UX feedback before showing success
+        setTimeout(() => {
+          setLaunchState('success')
+        }, 800)
+      } else {
+        setLaunchState('fail')
+      }
+    } catch (error) {
+      console.error('Failed to open router:', error)
+      setLaunchState('fail')
+    }
   }
 
   function handleReset() {
@@ -79,7 +105,7 @@ export default function RouterAccess() {
         </h3>
         <ol className="ra-steps">
           <li>Open your browser manually (Chrome, Firefox, Edge, etc.)</li>
-          <li>Type <code>{gatewayIP}</code> in the address bar and press Enter</li>
+          <li>Type <code>{gatewayIP !== 'Detecting...' ? gatewayIP : '192.168.1.1'}</code> in the address bar and press Enter</li>
           <li>Log in using your router credentials (see <em>Get Credentials</em>)</li>
           <li>
             If that doesn't work, try <code>192.168.0.1</code> or <code>10.0.0.1</code>

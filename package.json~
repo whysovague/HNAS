@@ -2,7 +2,7 @@
   "name": "hnas",
   "version": "1.0.0",
   "description": "Home Network Assistance System",
-  "main": "electron/main.js",
+  "main": "main.js",
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
     "build": "vite build",

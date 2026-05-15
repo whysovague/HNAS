@@ -1,5 +1,6 @@
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
+const { registerHandlers } = require('./ipc')
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -21,7 +22,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      // preload: path.join(__dirname, 'preload.js'), // wire up later for IPC
+      preload: path.join(__dirname, 'preload.js'),
     },
     backgroundColor: '#0a0e1a',
     show: false,
@@ -31,13 +32,17 @@ function createWindow() {
     win.loadURL('http://localhost:5173')
     win.webContents.openDevTools()
   } else {
-    win.loadFile(path.join(__dirname, 'dist', 'index.html'))
+    // Adjusted path to look outside the electron folder
+    win.loadFile(path.join(__dirname, '../dist', 'index.html'))
   }
 
   win.once('ready-to-show', () => win.show())
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  registerHandlers()
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
