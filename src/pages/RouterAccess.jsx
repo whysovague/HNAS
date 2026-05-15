@@ -1,49 +1,40 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Router, ExternalLink, AlertCircle, CheckCircle2 } from 'lucide-react'
 import ActionButton from '../components/ActionButton'
 import './RouterAccess.css'
 
-export default function RouterAccess() {
-  const [launchState, setLaunchState] = useState('idle') // idle | loading | success | fail
-  const [gatewayIP, setGatewayIP] = useState('Detecting...')
-
-  // Fetch the real gateway IP from the Electron backend on load
-  useEffect(() => {
-    async function fetchGateway() {
-      try {
-        const status = await window.hnasAPI.getNetworkStatus()
-        setGatewayIP(status.gatewayIP || 'Unknown')
-      } catch (error) {
-        console.error('Failed to fetch gateway IP:', error)
-        setGatewayIP('Error detecting IP')
-      }
-    }
-    fetchGateway()
-  }, [])
+export default function RouterAccess({ networkData }) {
+  const [launchState, setLaunchState] = useState('idle') 
+  const [debugError, setDebugError] = useState(null)
+  
+  // Get IP directly from props
+  const gatewayIP = networkData?.gatewayIP || 'Detecting...'
 
   function handleOpen() {
     setLaunchState('loading')
-    
     try {
-      // Call the IPC bridge to open the browser
-      if (gatewayIP && gatewayIP !== 'Detecting...' && gatewayIP !== 'Error detecting IP') {
+      if (!window.hnasAPI) {
+        throw new Error("window.hnasAPI is undefined. Preload script missing.")
+      }
+
+      if (gatewayIP && gatewayIP !== 'Detecting...' && gatewayIP !== '192.168.1.1' && gatewayIP !== 'Unknown') {
         window.hnasAPI.openRouter(gatewayIP)
-        
-        // Brief artificial delay for UX feedback before showing success
-        setTimeout(() => {
-          setLaunchState('success')
-        }, 800)
+        setTimeout(() => setLaunchState('success'), 800)
       } else {
-        setLaunchState('fail')
+        // Safe fallback if it's struggling to detect
+        window.hnasAPI.openRouter('192.168.1.1')
+        setTimeout(() => setLaunchState('success'), 800)
       }
     } catch (error) {
       console.error('Failed to open router:', error)
+      setDebugError(error.message)
       setLaunchState('fail')
     }
   }
 
   function handleReset() {
     setLaunchState('idle')
+    setDebugError(null)
   }
 
   return (
@@ -52,6 +43,13 @@ export default function RouterAccess() {
         <h1 className="page-title">Router Access</h1>
         <p className="page-subtitle">Open your router's settings page directly from here.</p>
       </div>
+
+      {debugError && (
+        <div style={{ background: '#3b0000', color: '#ffaaaa', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid red' }}>
+          <strong>Error:</strong><br/>
+          {debugError}
+        </div>
+      )}
 
       <div className="ra-card">
         <div className="ra-icon">
@@ -97,20 +95,16 @@ export default function RouterAccess() {
         )}
       </div>
 
-      {/* Fallback instructions — always visible */}
       <div className="ra-fallback">
         <h3 className="ra-fallback-title">
           <AlertCircle size={15} />
           Can't access the page?
         </h3>
         <ol className="ra-steps">
-          <li>Open your browser manually (Chrome, Firefox, Edge, etc.)</li>
+          <li>Open your browser manually</li>
           <li>Type <code>{gatewayIP !== 'Detecting...' ? gatewayIP : '192.168.1.1'}</code> in the address bar and press Enter</li>
-          <li>Log in using your router credentials (see <em>Get Credentials</em>)</li>
-          <li>
-            If that doesn't work, try <code>192.168.0.1</code> or <code>10.0.0.1</code>
-          </li>
-          <li>Check the label on the back of your router for the correct address</li>
+          <li>Log in using your router credentials</li>
+          <li>If that doesn't work, try <code>192.168.0.1</code> or <code>10.0.0.1</code></li>
         </ol>
       </div>
     </div>

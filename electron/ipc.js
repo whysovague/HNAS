@@ -11,8 +11,10 @@ const defaultCredentialDB = {
 }
 
 function registerHandlers() {
-  // 1. Network Status (with robust Windows route parsing)
+  // 1. Network Status (Gateway + Local IP + Real SSID)
   ipcMain.handle('network:getStatus', async () => {
+    
+    // Get Local IP
     let localIP = 'Unknown'
     const interfaces = os.networkInterfaces()
     for (const name of Object.keys(interfaces)) {
@@ -24,34 +26,43 @@ function registerHandlers() {
       }
     }
 
+    // Get Gateway IP via route print
     const gatewayIP = await new Promise((resolve) => {
       exec('route print 0.0.0.0', (error, stdout) => {
-        if (error) return resolve('192.168.1.1') // Fallback
+        if (error) return resolve('192.168.1.1') 
         
         const lines = stdout.split('\n')
         for (const line of lines) {
-          // Normalize all weird spacing (including non-breaking spaces) to single standard spaces
           const cleanLine = line.trim().replace(/\s+/g, ' ')
-          
-          // Match the active IPv4 default route row
           if (cleanLine.startsWith('0.0.0.0 0.0.0.0')) {
             const parts = cleanLine.split(' ')
             if (parts.length >= 3) {
-              return resolve(parts[2]) // The 3rd column is the Gateway IP
+              return resolve(parts[2]) 
             }
           }
         }
-        resolve('192.168.1.1') // Fallback if no match
+        resolve('192.168.1.1') 
+      })
+    })
+
+    // Get Real Wi-Fi SSID via netsh
+    const ssid = await new Promise((resolve) => {
+      exec('netsh wlan show interfaces', (error, stdout) => {
+        if (error) return resolve('Wired / Unknown')
+        
+        // Matches the "SSID : MyNetworkName" line in Windows output
+        const match = stdout.match(/^\s*SSID\s*:\s*(.+)$/m)
+        resolve(match && match[1] ? match[1].trim() : 'Wired / Unknown')
       })
     })
 
     return {
-      ssid: 'Connected Network', 
+      ssid, // Now returns your actual Wi-Fi name
       status: 'connected',
       gatewayIP,
       localIP,
-      signalStrength: 100,
-      encryptionType: 'Unknown'
+      signalStrength: 100, // These two are still mocked for now
+      encryptionType: 'WPA2/WPA3'
     }
   })
 

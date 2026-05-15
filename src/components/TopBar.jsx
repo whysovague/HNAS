@@ -1,33 +1,23 @@
 import React from 'react'
-import { Wifi, WifiOff, Globe } from 'lucide-react'
-import { networkStatus } from '../data/mockData'
-import StatusBadge from './StatusBadge'
+import { Wifi, WifiOff } from 'lucide-react'
 import './TopBar.css'
 
-export default function TopBar() {
-  const { ssid, status, gatewayIP, signalStrength } = networkStatus
+export default function TopBar({ networkData }) {
+  // Fallback to avoid crashes if data is missing during initial load
+  const { ssid, status } = networkData || { ssid: 'Loading...', status: 'disconnected' }
 
   return (
-    <header className="topbar">
-      <div className="topbar-left">
-        <span className="topbar-label">Network</span>
-        <span className="topbar-ssid">{ssid}</span>
-      </div>
-
-      <div className="topbar-center">
-        <StatusBadge status={status} />
-      </div>
-
-      <div className="topbar-right">
-        <span className="topbar-meta">
-          <Globe size={13} />
-          Gateway: <strong>{gatewayIP}</strong>
-        </span>
-        <span className="topbar-meta">
-          <Wifi size={13} />
-          Signal: <strong>{signalStrength}%</strong>
+    <div className="topbar">
+      <div className="topbar-network" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {status === 'connected' ? (
+          <Wifi size={16} className={`status-icon status-${status}`} style={{ color: 'var(--green, #4ade80)' }} />
+        ) : (
+          <WifiOff size={16} className="status-icon" style={{ color: 'var(--text-muted, #64748b)' }} />
+        )}
+        <span className="topbar-ssid" style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)' }}>
+          {ssid}
         </span>
       </div>
-    </header>
+    </div>
   )
 }

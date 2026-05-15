@@ -2,7 +2,7 @@ import React from 'react'
 import { Router, KeyRound, ShieldCheck, Wifi } from 'lucide-react'
 import DashboardCard from '../components/DashboardCard'
 import StatusBadge from '../components/StatusBadge'
-import { networkStatus, connectedDevices, securityChecklist } from '../data/mockData'
+import { securityChecklist } from '../data/mockData' // Keeping this since it's not dynamic yet
 import './Dashboard.css'
 
 const cards = [
@@ -36,9 +36,11 @@ const cards = [
   },
 ]
 
-export default function Dashboard() {
+export default function Dashboard({ networkData }) {
   const secDone = securityChecklist.filter(i => i.checked).length
-  const { ssid, status, encryptionType, signalStrength } = networkStatus
+  
+  // Destructure from the live prop
+  const { ssid, status, encryptionType, signalStrength } = networkData || {}
 
   return (
     <div className="page dashboard-page">
@@ -47,26 +49,25 @@ export default function Dashboard() {
         <p className="page-subtitle">Welcome to HNAS — your home network assistant.</p>
       </div>
 
-      {/* Network Summary */}
       <div className="network-summary">
         <div className="summary-item">
           <span className="summary-label">Status</span>
-          <StatusBadge status={status} />
+          <StatusBadge status={status || 'disconnected'} />
         </div>
         <div className="summary-item">
           <span className="summary-label">Network</span>
-          <span className="summary-value">{ssid}</span>
+          <span className="summary-value">{ssid || 'Loading...'}</span>
         </div>
         <div className="summary-item">
           <span className="summary-label">Encryption</span>
-          <span className="summary-value summary-value--green">{encryptionType}</span>
+          <span className="summary-value summary-value--green">{encryptionType || 'Unknown'}</span>
         </div>
         <div className="summary-item">
           <span className="summary-label">Signal</span>
           <div className="signal-bar">
-            <div className="signal-fill" style={{ width: `${signalStrength}%` }} />
+            <div className="signal-fill" style={{ width: `${signalStrength || 0}%` }} />
           </div>
-          <span className="summary-value">{signalStrength}%</span>
+          <span className="summary-value">{signalStrength || 0}%</span>
         </div>
         <div className="summary-item">
           <span className="summary-label">Security</span>
@@ -74,7 +75,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="dash-grid">
         {cards.map(card => (
           <DashboardCard key={card.to} {...card} />
