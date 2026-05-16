@@ -1,19 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { RefreshCw } from 'lucide-react'
 import DeviceCard from '../components/DeviceCard'
 import ActionButton from '../components/ActionButton'
-import { connectedDevices } from '../data/mockData'
 import './Devices.css'
 
 export default function Devices() {
-  const [devices] = useState(connectedDevices)
+  const [devices, setDevices] = useState([])
   const [scanning, setScanning] = useState(false)
 
-  function handleScan() {
+  async function handleScan() {
     setScanning(true)
-    // TODO: Replace with Electron IPC → Node.js ARP scan
-    setTimeout(() => setScanning(false), 2000)
+    try {
+      if (window.hnasAPI) {
+        const liveDevices = await window.hnasAPI.scanDevices()
+        setDevices(liveDevices)
+      }
+    } catch (error) {
+      console.error("Failed to scan network:", error)
+    } finally {
+      setScanning(false)
+    }
   }
+
+  // Run a scan automatically when the page loads
+  useEffect(() => {
+    handleScan()
+  }, [])
 
   return (
     <div className="page">

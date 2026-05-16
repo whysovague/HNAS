@@ -1,14 +1,10 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('hnasAPI', {
-  // Network
   getNetworkStatus: () => ipcRenderer.invoke('network:getStatus'),
   scanDevices: () => ipcRenderer.invoke('network:scanDevices'),
-  getWifiPassword: (ssid) => ipcRenderer.invoke('network:getWifiPassword', ssid), // NEW
-  
-  // System actions
+  getWifiPassword: (ssid) => ipcRenderer.invoke('network:getWifiPassword', ssid),
+  getGatewayCredentials: () => ipcRenderer.invoke('network:getGatewayCredentials'), // NEW
   openRouter: (ip) => ipcRenderer.send('system:openRouter', ip),
-  
-  // Data
   getDefaultCredentials: (mac) => ipcRenderer.invoke('db:getDefaultCredentials', mac)
 })
