@@ -10,7 +10,10 @@ export default function Credentials({ networkData }) {
   
   const [defaultState, setDefaultState] = useState('idle') // idle | loading | matched-standard | matched-sticker | no-match
   const [match, setMatch] = useState(null)
+  
+  // UI Expansion States
   const [labelExpanded, setLabelExpanded] = useState(false)
+  const [resetExpanded, setResetExpanded] = useState(false)
 
   const ssid = networkData?.ssid || 'Unknown'
   const gatewayIP = networkData?.gatewayIP || 'Unknown'
@@ -33,6 +36,9 @@ export default function Credentials({ networkData }) {
 
   async function handleGetDefaults() {
     setDefaultState('loading')
+    setResetExpanded(false) // Reset the UI expansion on new search
+    setLabelExpanded(false)
+
     try {
       const result = await window.hnasAPI.getGatewayCredentials()
       
@@ -142,6 +148,28 @@ export default function Credentials({ networkData }) {
               <p className="cred-warning">
                 These are factory defaults — only valid if you haven't changed them yet.
               </p>
+
+              {/* Factory Reset Instructions */}
+              <button
+                className="cred-expand-btn"
+                onClick={() => setResetExpanded(v => !v)}
+                style={{ marginTop: '10px' }}
+              >
+                {resetExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                Password changed? How to factory reset
+              </button>
+
+              {resetExpanded && (
+                <div className="cred-info" style={{ marginTop: '10px', background: '#1e1e1e', padding: '12px', borderRadius: '6px', color: 'var(--text-primary)' }}>
+                  <strong style={{ color: 'var(--red)' }}>Warning: This erases all custom settings and Wi-Fi configurations!</strong>
+                  <ol className="cred-label-steps" style={{ marginTop: '8px', paddingLeft: '16px' }}>
+                    <li>Find the small "Reset" pinhole on the back of your router.</li>
+                    <li>Use a paperclip to press and hold the button inside for 10-15 seconds.</li>
+                    <li>Wait 2-3 minutes for the router lights to stabilize.</li>
+                    <li>Log in using the default credentials above.</li>
+                  </ol>
+                </div>
+              )}
             </div>
           )}
 
@@ -173,6 +201,28 @@ export default function Credentials({ networkData }) {
                   <li>Look for a sticker labeled "Admin Password", "Device Access Code", or "Router GUI Password".</li>
                   <li>Note: This is often different from your Wi-Fi password.</li>
                 </ol>
+              )}
+
+              {/* Factory Reset Instructions */}
+              <button
+                className="cred-expand-btn"
+                onClick={() => setResetExpanded(v => !v)}
+                style={{ marginTop: '10px' }}
+              >
+                {resetExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                Password changed? How to factory reset
+              </button>
+
+              {resetExpanded && (
+                <div className="cred-info" style={{ marginTop: '10px', background: '#1e1e1e', padding: '12px', borderRadius: '6px', color: 'var(--text-primary)' }}>
+                  <strong style={{ color: 'var(--red)' }}>Warning: This erases all custom settings and Wi-Fi configurations!</strong>
+                  <ol className="cred-label-steps" style={{ marginTop: '8px', paddingLeft: '16px' }}>
+                    <li>Find the small "Reset" pinhole on the back of your router.</li>
+                    <li>Use a paperclip to press and hold the button inside for 10-15 seconds.</li>
+                    <li>Wait 2-3 minutes for the router lights to stabilize.</li>
+                    <li>The sticker credentials will now work again.</li>
+                  </ol>
+                </div>
               )}
             </div>
           )}
