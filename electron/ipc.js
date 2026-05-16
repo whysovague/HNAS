@@ -4,13 +4,13 @@ const os = require('os')
 const dns = require('dns').promises
 const dgram = require('dgram')
 
-// Expanded DB with types
+// Load the local MAC Vendor database
+const macVendorDB = require('./mac-vendors.json')
+
 const defaultCredentialDB = {
-  // Legacy / Standard Defaults
   'A4:83:E7': { type: 'standard', vendor: 'TP-Link', username: 'admin', password: 'admin' },
   'F8:0D:43': { type: 'standard', vendor: 'ASUS', username: 'admin', password: 'admin' },
   '00:1A:2B': { type: 'standard', vendor: 'Netgear', username: 'admin', password: 'password' },
-  // Modern Sticker-based
   'CC:40:D0': { type: 'sticker', vendor: 'Eero', message: 'Eero devices are managed exclusively via the mobile app. There is no local web interface.' },
   '44:E1:37': { type: 'sticker', vendor: 'Comcast / Xfinity', message: 'Xfinity gateways use a unique password printed on the bottom sticker.' },
   'E0:22:02': { type: 'sticker', vendor: 'AT&T', message: 'AT&T gateways use a Device Access Code printed on the side sticker.' }
@@ -23,16 +23,14 @@ async function resolveDeviceName(ip, mac) {
   } catch (err) {}
 
   const oui = mac.substring(0, 8).toUpperCase()
-  const vendorInfo = defaultCredentialDB[oui]
-  if (vendorInfo && vendorInfo.vendor) return `${vendorInfo.vendor} Device`
+  
+  // Check gateway credential DB first
+  const gatewayInfo = defaultCredentialDB[oui]
+  if (gatewayInfo && gatewayInfo.vendor) return `${gatewayInfo.vendor} Device`
 
-  try {
-    const response = await fetch(`https://api.macvendors.com/${mac}`)
-    if (response.ok) {
-      const vendor = await response.text()
-      return `${vendor} Device`
-    }
-  } catch (err) {}
+  // Look up in the local offline MAC JSON file
+  const localVendor = macVendorDB[oui]
+  if (localVendor) return `${localVendor} Device`
 
   return 'Unknown Device'
 }
@@ -118,9 +116,7 @@ function registerHandlers() {
     })
   })
 
-  // NEW: Smart Gateway Credential Fetcher
   ipcMain.handle('network:getGatewayCredentials', async () => {
-    // 1. Find Gateway IP
     const gatewayIP = await new Promise((resolve) => {
       exec('route print 0.0.0.0', (error, stdout) => {
         if (error) return resolve(null)
@@ -138,10 +134,8 @@ function registerHandlers() {
 
     if (!gatewayIP) return { type: 'unknown' }
 
-    // 2. Ping it to ensure it's in the ARP table
     await new Promise((resolve) => exec(`ping -n 1 -w 500 ${gatewayIP}`, resolve))
 
-    // 3. Find Gateway MAC Address
     const mac = await new Promise((resolve) => {
       exec('arp -a', (error, stdout) => {
         if (error) return resolve(null)
@@ -154,23 +148,18 @@ function registerHandlers() {
 
     if (!mac) return { type: 'unknown', ip: gatewayIP }
 
-    // 4. Check Local DB
     const oui = mac.substring(0, 8).toUpperCase()
     const dbEntry = defaultCredentialDB[oui]
     if (dbEntry) return { ...dbEntry, mac, ip: gatewayIP }
 
-    // 5. Fallback to API to grab Vendor and assume sticker
-    try {
-      const response = await fetch(`https://api.macvendors.com/${mac}`)
-      if (response.ok) {
-        const vendor = await response.text()
-        return { 
-          type: 'sticker', 
-          vendor, 
-          message: `Modern ${vendor} routers typically use a unique, randomized password printed on the bottom or back label.` 
-        }
+    const localVendor = macVendorDB[oui]
+    if (localVendor) {
+      return { 
+        type: 'sticker', 
+        vendor: localVendor, 
+        message: `Modern ${localVendor} routers typically use a unique, randomized password printed on the bottom or back label.` 
       }
-    } catch (err) {}
+    }
 
     return { type: 'sticker', vendor: 'Unknown Vendor', message: 'Most modern routers use a unique randomized password printed on the manufacturer sticker.' }
   })
@@ -207,12 +196,13 @@ function registerHandlers() {
           }
         })
 
-        const devicesWithNames = []
-        for (const device of rawDevices) {
-          const name = await resolveDeviceName(device.ip, device.mac)
-          devicesWithNames.push({ ...device, name })
-          await new Promise(r => setTimeout(r, 100))
-        }
+        // Because we removed the API, we can safely parallelize this again for maximum speed
+        const devicesWithNames = await Promise.all(
+          rawDevices.map(async (device) => {
+            const name = await resolveDeviceName(device.ip, device.mac)
+            return { ...device, name }
+          })
+        )
 
         resolve(devicesWithNames)
       })
